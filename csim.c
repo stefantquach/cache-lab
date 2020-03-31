@@ -1,5 +1,4 @@
 #include "cachelab.h"
-#include "csim.h"
 #include <getopt.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -19,6 +18,56 @@ int evictions = 0;
 int dirty_evicted = 0;
 int dirty_active = 0;
 int double_accesses = 0;
+
+/**************** Helper Functions ********************************/
+
+/* Queue Node */
+typedef struct Node {
+    struct Node *next, *prev;
+    int val;
+} Node;
+
+/* Queue struct */
+typedef struct Queue {
+    Node* head, *tail;
+    // int size;
+} Queue;
+
+/* Queue Methods */
+void initialize_queue(Queue* q, int max_size);
+Node* enqueue(Queue* q, int val);
+int dequeue(Queue* q);
+int peek_head(Queue* q);
+int peek_tail(Queue* q);
+void move_to_front(Queue* q, Node* n);
+
+void print_list(Queue* q);
+
+/*
+ * get_opt_args - This function reads and sets the input arguments of the
+ * simulator.
+ */
+void get_opt_args(int argc, char* argv[]);
+
+/* Prints only when verbose is true*/
+void verbose_print(char* str);
+
+/* Performs the necessary actions for a data load */
+void data_load(int set_index, int line_index, long tag, int miss, long* tags,
+                char* valid, char* dirty, Queue* usage_queue, Node** usage_table);
+
+/* Performs the necessary actions for a data store */
+void data_store(int set_index, int line_index, long tag, int miss, long* tags,
+                char* valid, char* dirty, Queue* usage_queue, Node** usage_table);
+
+/* Updates global variables for a cache eviction */
+void cache_eviction(int line, char* dirty);
+
+/* Updates global variables for a cache hit*/
+void cache_hit(int line_index, int set_index, Queue* usage_queue);
+
+
+/*************************** Code ********************************/
 
 int main(int argc, char* argv[])
 {
@@ -45,7 +94,7 @@ int main(int argc, char* argv[])
     unsigned long tr_addr;
     int num_bytes;
     // int last_line=-1;
-    while(fscanf(trace_file, " %c %lx,%i", &type, &tr_addr, &num_bytes) != -1) {
+    while(fscanf(trace_file, " %c %lx,%i", &type, &tr_addr, &num_bytes) == 3) {
         int line_index;
         int cold_index;
         int miss;
@@ -252,4 +301,95 @@ void cache_hit(int line_index, int set_index, Queue* usage_queue) {
     } else {
         verbose_print("hit ");
     }
+}
+
+
+
+void initialize_queue(Queue* q, int max_size) {
+    q->head = NULL;
+    q->tail = NULL;
+    // q->size = 0;
+}
+
+
+
+Node* enqueue(Queue* q, int val) {
+    Node* new = (Node*)malloc(sizeof(Node));
+    new->val = val;
+    new->next=q->head;
+
+    if(!q->head) {
+        q->head = new;
+        q->tail = new;
+    } else {
+        q->head->prev = new;
+        q->head = new;
+    }
+    // ++(q->size);
+    return new;
+}
+
+
+
+int dequeue(Queue* q) {
+    if(!q->head) {
+        return -1;
+    } else {
+        int retval = q->tail->val; // storing the value to be dequeued
+        Node* old = q->tail;       // old node to be deleted
+        q->tail = q->tail->next;
+        q->tail->prev = NULL;
+        free(old);
+        return retval;
+    }
+}
+
+
+
+int peek_head(Queue* q) {
+    return q->head->val;
+}
+
+
+
+int peek_tail(Queue* q) {
+    return q->tail->val;
+}
+
+
+void move_to_front(Queue* q, Node* n) {
+    if(!q->head) return;
+
+    if(n != q->head) {
+        // unlinking node
+        if(n->next)
+            n->next->prev = n->prev;
+        if(n->prev)
+            n->prev->next = n->next;
+
+        // if the node is the tail
+        if(n == q->tail){
+            q->tail = n->prev;
+            q->tail->next = NULL;
+        }
+
+        // putting to front
+        n->next = q->head;
+        n->prev = NULL;
+        q->head->prev = n;
+        q->head = n;
+    }
+}
+
+
+
+void print_list(Queue* list) {
+    if(!list->head) { printf("List empty."); }
+    else { printf("List: "); }
+    Node *tmp = list->head;
+    while(tmp) {
+        printf("%d ", tmp->val);
+        tmp = tmp->next;
+    }
+    printf("\n");
 }
