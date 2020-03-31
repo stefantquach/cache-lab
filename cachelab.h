@@ -4,7 +4,6 @@
 
 #ifndef CACHELAB_TOOLS_H
 #define CACHELAB_TOOLS_H
-#include "queue.h"
 #define MAX_TRANS_FUNCS 100
 
 typedef struct trans_func{
