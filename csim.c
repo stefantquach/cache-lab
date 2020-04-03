@@ -88,6 +88,12 @@ int main(int argc, char* argv[])
    // Hash table for quick access
    Node** usage_table = (Node**)malloc((1 << set_bits)*assoc*sizeof(Node*));
 
+   // checking malloc pointers
+   if(!(tags && valid && dirty && usage_queue && usage_table)) {
+      fprintf(stderr, "Failed to allocate memory");
+      exit(1);
+   }
+
    // reading trace file
    char type;
    unsigned long tr_addr;
