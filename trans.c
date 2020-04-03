@@ -30,14 +30,7 @@ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
    if(M==32 && N==32) {
       block_size = 8;
    } else if (M==64 && N==64) {
-      // int subblock_size = 4;
       block_size = 4;
-      // for (i=0; i<N; i+=block_size) {
-      //    for (j=0; j<M; j+=block_size) {
-      //
-      //    }
-      // }
-      return;
    } else if (M==61 && N==67) {
       block_size = 23;
    } else { // Generalized case with blocksize of 8
