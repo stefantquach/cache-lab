@@ -63,7 +63,7 @@ void data_store(int set_index, int line_index, long tag, int miss, long* tags,
 /* Updates global variables for a cache eviction */
 void cache_eviction(int line, char* dirty);
 
-/* Updates global variables for a cache hit*/
+/* Updates global variables for a cache hit */
 void cache_hit(int line_index, int set_index, Queue* usage_queue);
 
 
